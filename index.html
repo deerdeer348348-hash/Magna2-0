@@ -1218,7 +1218,7 @@ async function archivarJornadaActual(){
   if(!confirm(`¿Archivar "${nombreJornada}" en el histórico?\n\nSe guardará una copia de los partidos, resultados y clasificación actual. Esto no borra nada de la jornada en curso.`))return;
 
   const snapshotPartidos = partidos.map(p=>({
-    liga:p.liga, local:p.local, visita:p.visita, fecha:p.fecha,
+    id:p.id, liga:p.liga, local:p.local, visita:p.visita, fecha:p.fecha,
     orden:p.orden, resultado:p.resultado
   }));
   const snapshotParticipantes = participantes.map(n=>({
@@ -1306,7 +1306,44 @@ function verHistoricoDetalle(id){
   }
   partidosHtml += `</div></div>`;
 
-  document.getElementById("historico-detalle-body").innerHTML = tablaHtml + partidosHtml;
+  // Tabla comparativa de picks (igual que la pestaña "Tabla de Picks", pero de la jornada archivada)
+  let picksHtml = `<div class="tabla-wrap"><div class="tabla-header"><h2>Picks por Participante</h2></div><div class="picks-scroll">`;
+  if(!(h.partidos||[]).length || !parts.length){
+    picksHtml += `<div class="no-data">Sin datos de picks para esta jornada</div>`;
+  } else {
+    let phead = `<table class="picks-table"><thead>`;
+    phead += `<tr><th class="th-name" rowspan="2">Participante</th>`;
+    agruparPorLiga(h.partidos).forEach(g=>{
+      phead += `<th colspan="${g.items.length}" style="text-align:center;border-left:1px solid var(--border);color:var(--gold);font-size:12px">${g.liga}</th>`;
+    });
+    phead += `<th class="th-ac" rowspan="2" style="text-align:center;border-left:2px solid var(--border)">Pts</th></tr><tr>`;
+    h.partidos.forEach((p,i)=>{
+      const la=(p.local||"").split(" ")[0].slice(0,7);
+      const vi=(p.visita||"").split(" ")[0].slice(0,7);
+      phead += `<th class="th-partido" style="${i%2===0?"border-left:1px solid var(--border)":""}" title="${p.orden+1}. ${p.local} vs ${p.visita}">${imgEscudo(p.local,'escudo-mini')}${la}<br><span style="color:var(--muted);font-size:9px">vs</span><br>${imgEscudo(p.visita,'escudo-mini')}${vi}<br><span class="th-fecha">#${p.orden+1}</span></th>`;
+    });
+    phead += `</tr></thead><tbody>`;
+    let prows = "";
+    parts.forEach((n,ni)=>{
+      const picks = n.picks||{};
+      const rc=ni===0?"rank-1":ni===1?"rank-2":ni===2?"rank-3":"";
+      prows += `<tr class="${rc}"><td class="td-name"><span class="rank-badge">${ni===0?"🥇":ni===1?"🥈":ni===2?"🥉":ni+1}</span>${n.nombre}</td>`;
+      h.partidos.forEach((p,i)=>{
+        const pick = picks[p.id]||"-";
+        const hasResult = !!p.resultado;
+        let cls = `pick-${pick}`;
+        if(pick==="-") cls="pick-empty";
+        else if(hasResult){ cls=`pick-${pick} `+(pick===p.resultado?"pick-hit":"pick-miss"); }
+        prows += `<td style="${i%2===0?"border-left:1px solid rgba(30,48,96,0.5)":""}"><span class="${cls}">${pick==="-"?"·":pick}</span></td>`;
+      });
+      prows += `<td style="text-align:center;border-left:2px solid var(--border)"><span class="aciertos-badge">${n.aciertos||0}</span></td></tr>`;
+    });
+    phead += prows + `</tbody></table>`;
+    picksHtml += phead;
+  }
+  picksHtml += `</div></div>`;
+
+  document.getElementById("historico-detalle-body").innerHTML = tablaHtml + partidosHtml + picksHtml;
 }
 
 function volverHistoricoLista(){
