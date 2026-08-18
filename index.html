@@ -45,15 +45,16 @@ body::before{content:'';position:fixed;inset:0;background:
 .group-letter{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);min-width:32px}
 .group-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:var(--muted)}
 .group-date{font-size:12px;color:var(--muted);margin-left:auto;text-align:right}
-.match{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:12px;flex-wrap:wrap;border-bottom:1px solid rgba(30,48,96,0.5)}
+.match{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:10px;flex-wrap:wrap;border-bottom:1px solid rgba(30,48,96,0.5)}
 .match:last-child{border-bottom:none}
-.match-num{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--muted);min-width:24px}
-.match-teams{font-size:15px;font-weight:600;flex:1;min-width:160px;display:flex;align-items:center;flex-wrap:wrap;gap:2px}
-.match-teams .lado{display:inline-flex;align-items:center;gap:6px}
-.match-teams .lado.local{flex-direction:row}
-.match-teams .lado.visita{flex-direction:row-reverse}
-.escudo{width:22px;height:22px;object-fit:contain;border-radius:50%;background:rgba(255,255,255,0.04);flex-shrink:0}
-.vs{color:var(--muted);font-size:11px;margin:0 6px}
+.match-num{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--muted);min-width:22px;flex-shrink:0}
+.match-teams{font-size:clamp(11px,3.4vw,15px);font-weight:600;flex:1 1 auto;min-width:0;display:flex;align-items:center;flex-wrap:nowrap;gap:0;width:100%}
+.match-teams .lado{display:flex;align-items:center;gap:5px;min-width:0;flex:1 1 0}
+.match-teams .lado.local{flex-direction:row;justify-content:flex-end;text-align:right}
+.match-teams .lado.visita{flex-direction:row-reverse;justify-content:flex-end;text-align:left}
+.match-teams .lado span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.match-teams .escudo{flex-shrink:0}
+.vs{color:var(--muted);font-size:11px;margin:0 6px;flex-shrink:0}
 .picks-table .escudo-mini{width:16px;height:16px;object-fit:contain;border-radius:50%;display:block;margin:0 auto 2px}
 .opts{display:flex;gap:6px}
 .opts label{cursor:pointer}
