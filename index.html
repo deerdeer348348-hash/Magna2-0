@@ -86,7 +86,8 @@ body::before{content:'';position:fixed;inset:0;background:
 .btn-danger:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(239,68,68,0.3)}
 
 /* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#22c55e;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;padding:12px 28px;border-radius:10px;transition:transform .3s ease;z-index:9999}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#22c55e;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:.5px;padding:12px 22px;border-radius:10px;transition:transform .3s ease;z-index:9999;max-width:90vw;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,0.4)}
+.toast.error{background:#ef4444}
 .toast.show{transform:translateX(-50%) translateY(0)}
 
 /* TABS */
@@ -696,7 +697,11 @@ async function subirEscudoPersonalizado(){
   const nombre_norm = normalizarNombreEquipo(nombre);
   const { error } = await sb.from("qm_escudos")
     .upsert({ nombre, nombre_norm, imagen:escudoSubidaBase64 }, { onConflict:"nombre_norm" });
-  if(error){ console.error(error); showToast("❌ Error al guardar escudo"); return; }
+  if(error){
+    console.error(error);
+    showToast(`❌ ${error.message || error.code || "Error desconocido"}`);
+    return;
+  }
   await cargarEscudosDB();
   nombreInput.value="";
   escudoSubidaBase64=null;
@@ -1293,8 +1298,13 @@ function setTab(name){
 }
 
 function showToast(msg){
-  const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),2800);
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.toggle("error", msg.startsWith("❌"));
+  t.classList.add("show");
+  const dur = msg.length>40 ? 6000 : 2800;
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=>t.classList.remove("show"),dur);
 }
 
 // ============================================================
