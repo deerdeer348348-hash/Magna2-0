@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quiniela Magna</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://agmghbylkvkuufzwvjhh.supabase.co">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 :root{
   --gold:#f5c842;--gold2:#e0a800;--bg:#080e1a;--bg2:#0d1629;
@@ -443,6 +446,7 @@ table.tabla-simple td{padding:11px 16px;font-size:15px;font-weight:600}
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 // ============================================================
 // CONFIGURACIÓN DE SUPABASE — reemplaza estos dos valores
@@ -665,7 +669,7 @@ function previsualizarEscudo(input){
   const reader=new FileReader();
   reader.onload=e=>{
     // Recorte cuadrado simple + compresión, ideal para escudos pequeños
-    comprimirImagenCuadrada(e.target.result, 160, 0.85).then(comprimida=>{
+    comprimirImagenCuadrada(e.target.result, 120, 0.85).then(comprimida=>{
       escudoSubidaBase64=comprimida;
       document.getElementById("esc-preview-img").src=escudoSubidaBase64;
       document.getElementById("esc-preview").style.display="flex";
@@ -684,7 +688,7 @@ function comprimirImagenCuadrada(dataUrl, size, calidad){
       canvas.width=size; canvas.height=size;
       const ctx=canvas.getContext("2d");
       ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
-      resolve(canvas.toDataURL("image/png",calidad));
+      resolve(canvas.toDataURL("image/webp",calidad));
     };
     img.onerror=()=>resolve(dataUrl);
     img.src=dataUrl;
@@ -733,13 +737,37 @@ function renderEscudosAdminList(){
     cont.innerHTML = `<div class="no-data" style="padding:16px">Aún no subes escudos personalizados. Los partidos usan el escudo genérico (⚽ o ícono con iniciales).</div>`;
     return;
   }
-  cont.innerHTML = entradas.map(([norm,e])=>`
+  cont.innerHTML = `<div style="margin-bottom:10px"><button class="btn btn-copy btn-sm" onclick="optimizarEscudosWebp()">🔄 Convertir todos a WebP (optimizar)</button></div>` +
+    entradas.map(([norm,e])=>`
     <div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid rgba(30,48,96,0.4)">
       <img src="${e.imagen}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border)">
       <span style="flex:1;font-weight:600">${e.nombre}</span>
       <button class="btn btn-copy btn-sm" style="flex:0;min-width:auto;padding:6px 12px" onclick="borrarEscudoPersonalizado('${norm}','${e.nombre.replace(/'/g,"\\'")}')">🗑</button>
     </div>`).join("");
 }
+
+async function optimizarEscudosWebp(){
+  const entradas = Object.entries(escudosCustom);
+  if(!entradas.length){ showToast("⚠️ No hay escudos que optimizar"); return; }
+  if(!confirm(`Se van a re-comprimir y convertir a WebP los ${entradas.length} escudo(s) guardados. Puede tardar unos segundos. ¿Continuar?`)) return;
+  showToast(`🔄 Optimizando 0/${entradas.length}...`);
+  let ok=0, fail=0;
+  for(let i=0;i<entradas.length;i++){
+    const [norm, e] = entradas[i];
+    try{
+      const webp = await comprimirImagenCuadrada(e.imagen, 120, 0.85);
+      const { error } = await sb.from("qm_escudos").update({ imagen: webp }).eq("nombre_norm", norm);
+      if(error) throw error;
+      ok++;
+    }catch(err){ console.error(err); fail++; }
+    showToast(`🔄 Optimizando ${i+1}/${entradas.length}...`);
+  }
+  await cargarEscudosDB();
+  renderEscudosAdminList();
+  renderPartidos(); renderPicks();
+  showToast(`✅ Listo: ${ok} convertidos${fail?`, ${fail} con error`:""}`);
+}
+
 async function enviarComprobanteWA(){
   const nombre=document.getElementById("nombre").value.trim()||"Participante";
   if(!fotoBase64){showToast("⚠️ Selecciona primero una foto");return;}
