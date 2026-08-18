@@ -801,8 +801,8 @@ function renderPartidos(){
           <span class="lado local">${imgEscudo(p.local)}<span>${p.local}</span></span>
           <span class="vs">VS</span>
           <span class="lado visita"><span>${p.visita}</span>${imgEscudo(p.visita)}</span>
-          ${p.fecha?`<span style="color:var(--muted);font-size:11px;width:100%">· ${p.fecha}</span>`:""}
         </span>
+        ${p.fecha?`<span style="color:var(--muted);font-size:11px;width:100%;flex-basis:100%;order:5">· ${p.fecha}</span>`:""}
         <div class="opts">
           <label><input type="radio" name="m${p.id}" value="L" onchange="updateProgress()"><span class="btn-opt L">L</span></label>
           <label><input type="radio" name="m${p.id}" value="E" onchange="updateProgress()"><span class="btn-opt E">E</span></label>
