@@ -168,6 +168,12 @@ table.tabla-simple td{padding:11px 16px;font-size:15px;font-weight:600}
 
 /* ADMIN */
 .admin-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:16px}
+.admin-subtabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:16px;-webkit-overflow-scrolling:touch}
+.admin-subtabs::-webkit-scrollbar{display:none}
+.admin-subtab{flex-shrink:0;font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--muted);background:var(--card);border:1px solid var(--border);border-radius:20px;padding:8px 16px;cursor:pointer;white-space:nowrap;transition:.15s}
+.admin-subtab.active{color:#0a0f1c;background:var(--gold);border-color:var(--gold)}
+.admin-sub{display:none}
+.admin-sub.active{display:block}
 .admin-section h3{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--gold);margin-bottom:14px}
 .admin-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .admin-row label{font-size:14px;color:var(--muted);min-width:100px}
@@ -360,6 +366,16 @@ table.tabla-simple td{padding:11px 16px;font-size:15px;font-weight:600}
     <div id="admin-error" style="color:#ef4444;font-size:13px;margin-top:6px;display:none">Contraseña incorrecta</div>
   </div>
   <div id="admin-panel" style="display:none">
+    <div class="admin-subtabs">
+      <div class="admin-subtab active" onclick="setAdminSubTab('estado')">🔒 Estado</div>
+      <div class="admin-subtab" onclick="setAdminSubTab('partidos')">🗓️ Partidos</div>
+      <div class="admin-subtab" onclick="setAdminSubTab('escudos')">🖼️ Escudos</div>
+      <div class="admin-subtab" onclick="setAdminSubTab('quinielas')">📋 Quinielas</div>
+      <div class="admin-subtab" onclick="setAdminSubTab('resultados')">✅ Resultados</div>
+      <div class="admin-subtab" onclick="setAdminSubTab('datos')">🗑️ Datos</div>
+    </div>
+
+    <div class="admin-sub active" id="admin-sub-estado">
     <div class="finalizar-section">
       <h3>🔒 Estado de la Quiniela</h3>
       <p>Finalizar bloquea nuevos registros. La clasificación y picks siguen siendo visibles para todos.</p>
@@ -371,6 +387,9 @@ table.tabla-simple td{padding:11px 16px;font-size:15px;font-weight:600}
       <p style="font-size:13px;color:var(--muted);margin:14px 0 6px">Cuando ya calculaste los aciertos y esta jornada terminó, archívala en el histórico antes de publicar la siguiente:</p>
       <button class="btn btn-submit btn-sm" onclick="archivarJornadaActual()">📜 Archivar jornada actual en histórico</button>
     </div>
+    </div>
+
+    <div class="admin-sub" id="admin-sub-partidos">
     <div class="admin-section">
       <h3>🗓️ Partidos de la Jornada</h3>
       <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Agrega los partidos de la nueva jornada (de cualquier liga), acomódalos con las flechas y publícalos. Al publicar se reinician los pronósticos y resultados para arrancar la jornada limpia.</p>
@@ -404,35 +423,53 @@ table.tabla-simple td{padding:11px 16px;font-size:15px;font-weight:600}
         <button class="btn btn-submit" onclick="publicarPartidos()">💾 Guardar y Publicar Partidos</button>
       </div>
     </div>
+    </div>
+
+    <div class="admin-sub" id="admin-sub-escudos">
     <div class="admin-section">
       <h3>🖼️ Escudos Personalizados</h3>
       <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Sube tu propia imagen de escudo y vincúlala a un equipo. Escribe el nombre <strong>exactamente igual</strong> a como lo escribes en "Local"/"Visita" al agregar partidos (mayúsculas/acentos no importan). Se guarda para todos y reemplaza al ícono genérico.</p>
       <div class="admin-row" style="align-items:flex-start">
         <label style="padding-top:9px">Nombre del equipo</label>
-        <input type="text" id="esc-nombre" placeholder="Ej: América">
+        <input type="text" id="esc-nombre" list="equipos-datalist" placeholder="Escribe o busca un equipo... Ej: América" autocomplete="off">
+        <datalist id="equipos-datalist"></datalist>
         <label style="padding-top:9px">Imagen</label>
         <input type="file" id="esc-file" accept="image/*" onchange="previsualizarEscudo(this)" style="max-width:220px">
+      </div>
+      <div id="esc-edit-banner" style="display:none;background:rgba(245,200,66,0.12);border:1px solid var(--gold);border-radius:8px;padding:8px 12px;margin:8px 0;font-size:13px;color:var(--gold);display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <span>✏️ Editando escudo existente</span>
+        <button class="btn btn-copy btn-sm" style="min-width:auto;padding:4px 10px" onclick="cancelarEdicionEscudo()">Cancelar</button>
       </div>
       <div id="esc-preview" style="display:none;align-items:center;gap:10px;margin:10px 0">
         <img id="esc-preview-img" src="" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:1.5px solid var(--border)">
         <span style="font-size:13px;color:var(--muted)">Vista previa</span>
       </div>
-      <button class="btn btn-submit btn-sm" onclick="subirEscudoPersonalizado()">💾 Guardar escudo</button>
+      <button class="btn btn-submit btn-sm" id="esc-btn-guardar" onclick="subirEscudoPersonalizado()">💾 Guardar escudo</button>
       <div id="esc-lista" style="margin-top:16px"></div>
     </div>
+    </div>
+
+    <div class="admin-sub" id="admin-sub-quinielas">
     <div class="admin-section">
       <h3>📋 Quinielas Registradas</h3>
       <div id="admin-lista"></div>
     </div>
+    </div>
+
+    <div class="admin-sub" id="admin-sub-resultados">
     <div class="admin-section">
       <h3>✅ Resultados Reales</h3>
       <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Selecciona el resultado real de cada partido para calcular aciertos automáticamente.</p>
       <div id="resultados-form"></div>
       <button class="btn btn-submit" style="margin-top:14px" onclick="calcularAciertos()">⚡ Calcular Aciertos</button>
     </div>
+    </div>
+
+    <div class="admin-sub" id="admin-sub-datos">
     <div class="admin-section">
       <h3>🗑️ Borrar datos</h3>
       <button class="btn btn-copy btn-sm" onclick="borrarTodo()">Borrar todo</button>
+    </div>
     </div>
   </div>
 </div>
@@ -571,11 +608,23 @@ async function cargarEscudosDB(){
   const { data, error } = await sb.from("qm_escudos").select("*");
   if(error){ console.error(error); return; }
   escudosCustom = {};
-  (data||[]).forEach(e=>{ escudosCustom[e.nombre_norm] = { nombre:e.nombre, imagen:e.imagen }; });
+  (data||[]).forEach(e=>{ escudosCustom[e.nombre_norm] = { id:e.id, nombre:e.nombre, imagen:e.imagen }; });
+  poblarDatalistEquipos();
+}
+
+function poblarDatalistEquipos(){
+  const dl = document.getElementById("equipos-datalist");
+  if(!dl) return;
+  const nombres = new Set();
+  Object.keys(ESCUDOS_MAP).forEach(n=>nombres.add(n));
+  Object.values(escudosCustom).forEach(e=>nombres.add(e.nombre));
+  (partidos||[]).forEach(p=>{ if(p.local)nombres.add(p.local); if(p.visita)nombres.add(p.visita); });
+  dl.innerHTML = [...nombres].sort((a,b)=>a.localeCompare(b,"es")).map(n=>`<option value="${n.replace(/"/g,"&quot;")}">`).join("");
 }
 
 async function recargarTodo(){
   await Promise.all([cargarConfig(), cargarPartidosDB(), cargarParticipantesDB(), cargarEscudosDB()]);
+  poblarDatalistEquipos();
   actualizarHeader();
   renderPartidos();
   updateProgress();
@@ -663,6 +712,7 @@ function comprimirImagen(dataUrl, maxW, calidad){
 // vinculado al nombre exacto del equipo. Se sincroniza para todos.
 // ============================================================
 let escudoSubidaBase64 = null;
+let editandoEscudoId = null; // si no es null, estamos editando ese registro (por id)
 
 function previsualizarEscudo(input){
   const file=input.files[0]; if(!file)return;
@@ -698,25 +748,54 @@ function comprimirImagenCuadrada(dataUrl, size, calidad){
 async function subirEscudoPersonalizado(){
   const nombreInput = document.getElementById("esc-nombre");
   const nombre = nombreInput.value.trim();
-  if(!nombre){ showToast("⚠️ Escribe el nombre exacto del equipo"); return; }
+  if(!nombre){ showToast("⚠️ Escribe o selecciona el nombre exacto del equipo"); return; }
   if(!escudoSubidaBase64){ showToast("⚠️ Selecciona una imagen primero"); return; }
   const nombre_norm = normalizarNombreEquipo(nombre);
-  const { error } = await sb.from("qm_escudos")
-    .upsert({ nombre, nombre_norm, imagen:escudoSubidaBase64 }, { onConflict:"nombre_norm" });
+
+  let error;
+  if(editandoEscudoId){
+    ({ error } = await sb.from("qm_escudos")
+      .update({ nombre, nombre_norm, imagen:escudoSubidaBase64 })
+      .eq("id", editandoEscudoId));
+  } else {
+    ({ error } = await sb.from("qm_escudos")
+      .upsert({ nombre, nombre_norm, imagen:escudoSubidaBase64 }, { onConflict:"nombre_norm" }));
+  }
   if(error){
     console.error(error);
     showToast(`❌ ${error.message || error.code || "Error desconocido"}`);
     return;
   }
+  const fueEdicion = !!editandoEscudoId;
+  cancelarEdicionEscudo();
   await cargarEscudosDB();
-  nombreInput.value="";
-  escudoSubidaBase64=null;
-  document.getElementById("esc-preview").style.display="none";
-  document.getElementById("esc-file").value="";
   renderEscudosAdminList();
   renderPartidos(); renderPicks();
   if(document.getElementById("tab-admin").classList.contains("active")) renderAdminPanel();
-  showToast(`✅ Escudo de "${nombre}" guardado`);
+  showToast(fueEdicion?`✅ Escudo de "${nombre}" actualizado`:`✅ Escudo de "${nombre}" guardado`);
+}
+
+function editarEscudoPersonalizado(id){
+  const entrada = Object.values(escudosCustom).find(e=>e.id===id);
+  if(!entrada) return;
+  editandoEscudoId = id;
+  document.getElementById("esc-nombre").value = entrada.nombre;
+  escudoSubidaBase64 = entrada.imagen;
+  document.getElementById("esc-preview-img").src = entrada.imagen;
+  document.getElementById("esc-preview").style.display = "flex";
+  document.getElementById("esc-edit-banner").style.display = "flex";
+  document.getElementById("esc-btn-guardar").textContent = "💾 Actualizar escudo";
+  document.getElementById("esc-nombre").scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+function cancelarEdicionEscudo(){
+  editandoEscudoId = null;
+  escudoSubidaBase64 = null;
+  document.getElementById("esc-nombre").value = "";
+  document.getElementById("esc-file").value = "";
+  document.getElementById("esc-preview").style.display = "none";
+  document.getElementById("esc-edit-banner").style.display = "none";
+  document.getElementById("esc-btn-guardar").textContent = "💾 Guardar escudo";
 }
 
 async function borrarEscudoPersonalizado(nombre_norm, nombre){
@@ -742,7 +821,8 @@ function renderEscudosAdminList(){
     <div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid rgba(30,48,96,0.4)">
       <img src="${e.imagen}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border)">
       <span style="flex:1;font-weight:600">${e.nombre}</span>
-      <button class="btn btn-copy btn-sm" style="flex:0;min-width:auto;padding:6px 12px" onclick="borrarEscudoPersonalizado('${norm}','${e.nombre.replace(/'/g,"\\'")}')">🗑</button>
+      <button class="btn btn-copy btn-sm" style="flex:0;min-width:auto;padding:6px 10px" onclick="editarEscudoPersonalizado(${e.id})">✏️</button>
+      <button class="btn btn-copy btn-sm" style="flex:0;min-width:auto;padding:6px 10px" onclick="borrarEscudoPersonalizado('${norm}','${e.nombre.replace(/'/g,"\\'")}')">🗑</button>
     </div>`).join("");
 }
 
@@ -990,7 +1070,18 @@ function loginAdmin(){
     document.getElementById("jornada-input").value = CONFIG.jornada || "";
     initPartidosAdmin();
     renderAdminPanel(); renderAdminEstado(); renderEscudosAdminList();
+    setAdminSubTab("estado");
   } else {document.getElementById("admin-error").style.display="block";}
+}
+
+function setAdminSubTab(name){
+  document.querySelectorAll(".admin-subtab").forEach(el=>{
+    const match = el.getAttribute("onclick").includes(`'${name}'`);
+    el.classList.toggle("active", match);
+  });
+  document.querySelectorAll(".admin-sub").forEach(el=>{
+    el.classList.toggle("active", el.id === `admin-sub-${name}`);
+  });
 }
 
 // ============================================================
